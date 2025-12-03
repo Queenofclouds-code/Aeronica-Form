@@ -9,11 +9,13 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "vaibhav.j@aeronica.in",
-    pass: "wiuu evao snpc stlu"  // Put your Gmail App Password here
+    pass: "wiuu evao snpc stlu"  // Gmail App Password
   }
 });
 
-// MAIN POST ROUTE
+// =========================
+// 1. POST /submit — Save form + email admin + reply user
+// =========================
 router.post("/submit", async (req, res) => {
   const data = req.body;
 
@@ -49,8 +51,7 @@ router.post("/submit", async (req, res) => {
       services: data.services
     });
 
-    // 3. Send Notification Email to Admin (SHORT MESSAGE ONLY)
-    // 3. Send simple notification email to Admin
+    // 3. Send simple admin notification email
     await transporter.sendMail({
       from: "vaibhav.j@aeronica.in",
       to: "vaibhav.j@aeronica.in",
@@ -58,8 +59,7 @@ router.post("/submit", async (req, res) => {
       text: "A new form has been received. Visit the admin panel to view full details."
     });
 
-
-    // 4. Auto reply to User
+    // 4. Auto reply to user
     await transporter.sendMail({
       from: "vaibhav.j@aeronica.in",
       to: data.email,
@@ -76,6 +76,85 @@ router.post("/submit", async (req, res) => {
   } catch (error) {
     console.error("ERROR:", error);
     res.status(500).json({ status: "error" });
+  }
+});
+
+
+// =========================
+// 2. GET /admin — Admin Dashboard (HTML Table)
+// =========================
+router.get("/admin", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM aeronica_forms ORDER BY id DESC");
+
+    let rowsHTML = "";
+    result.rows.forEach((r) => {
+      rowsHTML += `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.company}</td>
+          <td>${r.contact}</td>
+          <td>${r.email}</td>
+          <td>${r.state}</td>
+          <td>${r.city}</td>
+          <td>${r.district}</td>
+          <td>${r.drones}</td>
+          <td>${r.services}</td>
+          <td>${r.timestamp ? new Date(r.timestamp).toLocaleString() : ""}</td>
+        </tr>
+      `;
+    });
+
+    res.send(`
+      <html>
+      <head>
+        <title>Aeronica Admin Dashboard</title>
+        <style>
+          body { font-family: Arial; margin: 20px; }
+          h2 { color: #004aad; }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+          }
+          th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+          }
+          th {
+            background: #004aad;
+            color: white;
+          }
+          tr:nth-child(even) { background: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <h2>📄 Aeronica – All Form Submissions</h2>
+
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>State</th>
+            <th>City</th>
+            <th>District</th>
+            <th>Drones</th>
+            <th>Services</th>
+            <th>Timestamp</th>
+          </tr>
+          ${rowsHTML}
+        </table>
+      </body>
+      </html>
+    `);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to fetch admin data");
   }
 });
 
