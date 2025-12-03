@@ -50,12 +50,14 @@ router.post("/submit", async (req, res) => {
     });
 
     // 3. Send Notification Email to Admin (SHORT MESSAGE ONLY)
+    // 3. Send simple notification email to Admin
     await transporter.sendMail({
       from: "vaibhav.j@aeronica.in",
       to: "vaibhav.j@aeronica.in",
-      subject: "New Aeronica Form Submission",
-      text: "A new form submission has been received. Please check the Excel file for full details."
+      subject: "New Form Received - Aeronica",
+      text: "A new form has been received. Visit the admin panel to view full details."
     });
+
 
     // 4. Auto reply to User
     await transporter.sendMail({
