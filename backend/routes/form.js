@@ -81,9 +81,9 @@ router.post("/submit", async (req, res) => {
 
 
 // =========================
-// 2. GET /admin — Admin Dashboard (HTML Table)
+// 2. ADMIN DASHBOARD HANDLER (used by /form/admin in server.js)
 // =========================
-router.get("/admin", async (req, res) => {
+async function handleAdmin(req, res) {
   try {
     const result = await pool.query("SELECT * FROM aeronica_forms ORDER BY id DESC");
 
@@ -156,6 +156,9 @@ router.get("/admin", async (req, res) => {
     console.error(err);
     res.status(500).send("Failed to fetch admin data");
   }
-});
+}
 
+
+// Export main router + admin handler
+router.handleAdmin = handleAdmin;
 module.exports = router;
